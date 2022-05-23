@@ -10443,6 +10443,6 @@ fieldset:disabled .btn {
   background-color: #1d7caf;
 }
 
-.vh-50 {
-  height: 50vh !important;
+.min-vh-50 {
+  min-height: 50vh !important;
 }

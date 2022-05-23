@@ -3,7 +3,7 @@
 <div class="container-fluid">
 
   <!-- splash img and sign up form-->
-  <div class="row vh-100 bg-info py-2">
+  <div class="row min-vh-100 bg-info py-2">
     <div class="col-lg-7 vh-100 d-flex align-items-center bg-bagel bg-info">
       <div class="container d-flex justify-content-center">
         <figure class="text-center">
@@ -33,15 +33,9 @@
             </div>
           </div>
           <div class="row my-3">
-            <label for="email" class="col-form-label col-md-3">Password</label>
+            <label for="password" class="col-form-label col-md-3">Password</label>
             <div class="col-md-9">
               <input type="password" class="form-control" id="password" name="password" placeholder="password">
-            </div>
-          </div>
-          <div class="row my-3">
-            <label for="email" class="col-form-label col-md-3">Phone No.</label>
-            <div class="col-md-9">
-              <input type="tel" class="form-control" id="phone" name="phone" placeholder="+65 7283 2274">
             </div>
           </div>
           <input type="submit" class="btn btn-primary btn-lg my-3" value="Submit" />
@@ -52,15 +46,39 @@
   </div>
 
   <!-- Three fundamentals of bagelfunds -->
-  <div class="row py-2">
-    <div class="col-lg-4 vh-50 d-flex align-items-center justify-content-center">
-      blep blop
+  <div class="row min-vh-50 py-2" id="howitworks">
+    <div class="col-lg-4 d-flex flex-column align-items-center justify-content-center my-3">
+      <div class="row py-2">
+        <img src="/calendar.svg" alt="schedule" class="rounded">
+      </div>
+      <div class="row py-2">
+        <h5>Schedule</h5>
+      </div>
+      <div class="row py-2">
+        Schedule a cycle with friends!
+      </div>
     </div>
-    <div class="col-lg-4 vh-50 d-flex align-items-center justify-content-center">
-      image 2
+    <div class="col-lg-4 d-flex flex-column align-items-center justify-content-center my-3">
+      <div class="row py2">
+        <img src="/money.svg" alt="save" class="rounded"> <br />
+      </div>
+      <div class="row py-2">
+        <h5>Save</h5>
+      </div>
+      <div class="row py-2">
+        Save together with friends!
+      </div>
     </div>
-    <div class="col-lg-4 vh-50 d-flex align-items-center justify-content-center">
-      image 3
+    <div class="col-lg-4 d-flex flex-column align-items-center justify-content-center my-3">
+      <div class="row py-2">
+        <img src="/bagel.svg" alt="spend" class="rounded"> <br />
+      </div>
+      <div class="row py-2">
+        <h5>Spend</h5>
+      </div>
+      <div class="row py-2">
+        Spend your hard earned cash!
+      </div>
     </div>
   </div>
 </div>
