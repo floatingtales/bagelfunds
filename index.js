@@ -1,19 +1,11 @@
+/* eslint-disable import/extensions */
 import express from 'express';
 import methodOverride from 'method-override';
-import pg from 'pg';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import favicon from 'serve-favicon';
 import path from 'path';
-
-/** postgres config */
-const pgConnectionConfigs = {
-  user: 'sho',
-  host: 'localhost',
-  database: 'bagelfunds',
-  port: 5432, // Postgres server always runs on this port
-};
-const pool = new pg.Pool(pgConnectionConfigs);
+import { createNewUser, findUserFromEmail, findUserFromUsername } from './helper.js';
 
 /** set up express and ejs */
 const app = express();
@@ -31,11 +23,7 @@ app.use(cookieParser());
  */
 const landingPageHandler = (req, res) => {
   console.log('get:', req.url);
-  pool.query('SELECT * FROM users').then((result) => {
-    console.log(result.rows);
-  }).catch((err) => {
-    console.log(err);
-  });
+
   res.render('landing');
 };
 
@@ -44,7 +32,7 @@ const landingPageHandler = (req, res) => {
  * @param {object} req request
  * @param {object} res response
  */
-const loginGetHandler = (req, res) => {
+const loginPageHandler = (req, res) => {
   console.log('get:', req.url);
   res.render('login');
 };
@@ -54,14 +42,53 @@ const loginGetHandler = (req, res) => {
  * @param {object} req request
  * @param {object} res response
  */
-const signupHandler = (req, res) => {
+const signupHandler = async (req, res) => {
   console.log('post: ', req.url);
+
   const { username, email, password } = req.body;
+
+  // search if there is already a username or email from db
+  const userSearch = await findUserFromUsername(username);
+  const emailSearch = await findUserFromEmail(email);
+
   const hash = bcrypt.hashSync(password, 12);
 
-  const dbQuery = 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3)';
+  if (userSearch.length !== 0) {
+    res.send('username is already taken');
+    return;
+  }
 
-  pool.query(dbQuery, [username, email, hash]).then(() => { res.render('signupSuccess'); }).catch((err) => { console.log(err); res.redirect('/error'); });
+  if (emailSearch.length !== 0) {
+    res.send('email is already in use');
+    return;
+  }
+
+  await createNewUser(username, email, hash);
+  res.render('signupSuccess');
+};
+
+const loginHandler = async (req, res) => {
+  console.log('post:', req.url);
+  const { username, password } = req.body;
+  const userArr = await findUserFromUsername(username);
+  // no user found
+  if (userArr.length === 0) {
+    res.send('no user found');
+    return;
+  }
+
+  console.log(userArr);
+  const dbPwd = userArr[0].password;
+  const pwdCorrect = bcrypt.compareSync(password, dbPwd);
+
+  if (!pwdCorrect) {
+    res.send('wrong password');
+  }
+
+  const userID = userArr[0].id;
+
+  res.cookie('loggedUser', userID);
+  res.redirect('/');
 };
 
 const errHandler = (req, res) => {
@@ -73,10 +100,11 @@ const errHandler = (req, res) => {
 /** routes */
 /* get routes */
 app.get('/', landingPageHandler);
-app.get('/login', loginGetHandler);
+app.get('/login', loginPageHandler);
 
 /* post routes */
 app.post('/signup', signupHandler);
+app.post('/login', loginHandler);
 
 /** 404 handler */
 app.get('*', errHandler);
