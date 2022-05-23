@@ -1,4 +1,68 @@
 <%- include('header', {title: 'Bagelfunds!'}) %>
-landing page uwu
-<img src="/favicon.svg" alt="">
+<%- include('navbar') %>
+<div class="container-fluid">
+
+  <!-- splash img and sign up form-->
+  <div class="row vh-100 bg-info py-2">
+    <div class="col-lg-7 vh-100 d-flex align-items-center bg-bagel bg-info">
+      <div class="container d-flex justify-content-center">
+        <figure class="text-center">
+          <blockquote class="blockquote">
+            <p>Can't save? Need cash? We'll solve both problems for you!</p>
+          </blockquote>
+          <figcaption class="blockquote-footer">
+            Bagelfunds!
+          </figcaption>
+        </figure>
+      </div>
+    </div>
+    <div class="col-lg-5 d-flex align-items-center justify-content-center font-override bg-info">
+      <div class="container text-center bg-secondary text-light rounded ">
+        <h1 class="my-3">Sign up now!</h1>
+        <form action="/signup" method="post">
+          <div class="row my-3">
+            <label for="username" class="col-form-label col-md-3">Username</label>
+            <div class="col-md-9">
+              <input type="text" class="form-control" id="username" name="username" placeholder="bageluser001">
+            </div>
+          </div>
+          <div class="row my-3">
+            <label for="email" class="col-form-label col-md-3">Email</label>
+            <div class="col-md-9">
+              <input type="text" class="form-control" id="email" name="email" placeholder="bagel@funds.com">
+            </div>
+          </div>
+          <div class="row my-3">
+            <label for="email" class="col-form-label col-md-3">Password</label>
+            <div class="col-md-9">
+              <input type="password" class="form-control" id="password" name="password" placeholder="password">
+            </div>
+          </div>
+          <div class="row my-3">
+            <label for="email" class="col-form-label col-md-3">Phone No.</label>
+            <div class="col-md-9">
+              <input type="tel" class="form-control" id="phone" name="phone" placeholder="+65 7283 2274">
+            </div>
+          </div>
+          <input type="submit" class="btn btn-primary btn-lg my-3" value="Submit" />
+        </form>
+        <p>Already a member? <a class="link-light" href="/login">Log in here!</a> </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Three fundamentals of bagelfunds -->
+  <div class="row py-2">
+    <div class="col-lg-4 vh-50 d-flex align-items-center justify-content-center">
+      blep blop
+    </div>
+    <div class="col-lg-4 vh-50 d-flex align-items-center justify-content-center">
+      image 2
+    </div>
+    <div class="col-lg-4 vh-50 d-flex align-items-center justify-content-center">
+      image 3
+    </div>
+  </div>
+</div>
+
 <%- include('footer') %>

@@ -30,17 +30,17 @@ const landingPageGetHandler = (req, res) => {
   res.render('landing');
 };
 
-// const errHandler = (req, res) => {
-//   console.log('route: ', req.url);
-//   res.status(404);
-//   res.render('not-found');
-// };
+const errHandler = (req, res) => {
+  console.log('get: ', req.url);
+  res.status(404);
+  res.render('not-found');
+};
 
 /** routes */
 app.get('/', landingPageGetHandler);
 
 /** 404 handler */
-// app.use(errHandler);
+app.get('*', errHandler);
 
 /** start listening on port */
 const PORT = 5050;
