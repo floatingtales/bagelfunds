@@ -1,4 +1,11 @@
-<%- include('header', {title: '404 - Bagelfunds!'}) %>
-<%- include('navbar') %>
+<%- include('partials/header', {title: '404 - Bagelfunds!'}) %>
+
+<% if (loggedIn) { %>
+<%- include('partials/navbarUser') %>
+<% } else { %>
+<%- include('partials/navbar') %>
+<% } %>
+
 this is the 404 error
-<%- include('footer') %>
+
+<%- include('partials/footer') %>

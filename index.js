@@ -5,7 +5,9 @@ import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import favicon from 'serve-favicon';
 import path from 'path';
-import { createNewUser, findUserFromEmail, findUserFromUsername } from './helper.js';
+import {
+  createNewUser, findUserFromEmail, findUserFromID, findUserFromUsername, updateUser,
+} from './helper.js';
 
 /** set up express and ejs */
 const app = express();
@@ -16,15 +18,37 @@ app.use(express.urlencoded({ extended: false }));
 app.use(methodOverride('_method'));
 app.use(cookieParser());
 
+/** Handler Functions */
+
+/** Middlewares */
+
+const loginChecker = (req, res, next) => {
+  console.log('middleware:', req.url);
+  if (!req.cookies.loggedUser) {
+    res.redirect('/');
+  }
+  next();
+};
+
+/** Get handlers */
+
 /**
- * get landing page
+ * get landing page / user dashboard
  * @param {object} req request
  * @param {object} res response
  */
-const landingPageHandler = (req, res) => {
+const landingPageHandler = async (req, res) => {
   console.log('get:', req.url);
 
-  res.render('landing');
+  if (!req.cookies.loggedUser) {
+    res.render('landing');
+    return;
+  }
+
+  const userDetailsArr = await findUserFromID(req.cookies.loggedUser);
+  const userDetails = userDetailsArr[0];
+  console.log(userDetails);
+  res.render('userDashboard', { userDetails });
 };
 
 /**
@@ -36,6 +60,42 @@ const loginPageHandler = (req, res) => {
   console.log('get:', req.url);
   res.render('login');
 };
+
+/**
+ * logout post handler, deletes login cookie
+ * @param {object} req request
+ * @param {object} res response
+ */
+const logoutHandler = (req, res) => {
+  console.log('get:', req.url);
+  res.clearCookie('loggedUser');
+  res.redirect('/');
+};
+
+const profileHandler = async (req, res) => {
+  console.log('get:', req.url);
+
+  const userDetailsArr = await findUserFromID(req.cookies.loggedUser);
+  const userDetails = userDetailsArr[0];
+  res.render('profile', { userDetails });
+};
+
+/** put handlers */
+const editProfileHandler = async (req, res) => {
+  console.log('put:', req.url);
+  const { id } = req.params;
+  const { phone, twitter } = req.body;
+  if (id !== req.cookies.loggedUser) {
+    // this shouldn't happen but for precaution only
+    res.clearCookie('loggedUser');
+    res.redirect('/');
+    return;
+  }
+  await updateUser(id, phone, twitter);
+  res.redirect('/profile');
+};
+
+/** post handlers */
 
 /**
  * post signup, append to db
@@ -67,6 +127,12 @@ const signupHandler = async (req, res) => {
   res.render('signupSuccess');
 };
 
+/**
+ * login post handler, search from db and set cookie
+ * @param {object} req request
+ * @param {object} res response
+ * @returns {undefined}
+ */
 const loginHandler = async (req, res) => {
   console.log('post:', req.url);
   const { username, password } = req.body;
@@ -77,12 +143,12 @@ const loginHandler = async (req, res) => {
     return;
   }
 
-  console.log(userArr);
   const dbPwd = userArr[0].password;
   const pwdCorrect = bcrypt.compareSync(password, dbPwd);
 
   if (!pwdCorrect) {
     res.send('wrong password');
+    return;
   }
 
   const userID = userArr[0].id;
@@ -91,16 +157,35 @@ const loginHandler = async (req, res) => {
   res.redirect('/');
 };
 
+/** 404 handler */
+
+/**
+ * handler for 404 routes
+ * @param {object} req request
+ * @param {object} res response
+ */
 const errHandler = (req, res) => {
   console.log('get: ', req.url);
   res.status(404);
-  res.render('not-found');
+  if (!req.cookies.loggedUser) {
+    res.render('not-found', { loggedIn: false });
+    return;
+  }
+  res.render('not-found', { loggedIn: true });
 };
 
 /** routes */
+
 /* get routes */
 app.get('/', landingPageHandler);
 app.get('/login', loginPageHandler);
+app.get('/logout', logoutHandler);
+
+/* get routes after login */
+app.get('/profile', loginChecker, profileHandler);
+
+/* put routes after login */
+app.put('/profile/:id', loginChecker, editProfileHandler);
 
 /* post routes */
 app.post('/signup', signupHandler);

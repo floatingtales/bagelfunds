@@ -1,0 +1,82 @@
+<%- include('partials/header', {title:`Profile - Bagelfunds!`}) %>
+<%- include('partials/navbarUser') %>
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
+  <div class="container bg-secondary text-light font-override rounded-4 py-5 my-2">
+    <div class="row text-center align-items-center">
+      <div class="col-md-3 px-5 my-3">
+        <h3>Bagelprofile</h3>
+        <h5><%= userDetails.id %></h5>
+      </div>
+      <div class="col-md-9 my-3 text-md-end px-5 my-2">
+        <button id="toggle" class="btn btn-primary" onclick="toggleInput()">Edit Profile</button>
+      </div>
+    </div>
+
+    <div class="row text-center align-items-center">
+      <div class="col-md-3">
+        <div class="row">
+          <div class="col-md-12">
+            <img src="<%= userDetails.profile_url %> " alt="<%= userDetails.username %>'s profile" class="rounded-circle" width="50%">
+          </div>
+        </div>
+        <div class="row">
+          <div class="col-md-12">
+            button to upload new pp here
+          </div>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <form action="/profile/<%= userDetails.id %>?_method=PUT" method="POST">
+          <div class="row my-3">
+            <div class="col-sm-3 text-md-end">
+              <div class="col-form-label"><b>Username:</b></div>
+            </div>
+            <div class="col-sm-9 text-md-start">
+              <div class="col-form-label"><%= userDetails.username %></div>
+            </div>
+          </div>
+          <div class=" row my-3">
+            <div class="col-sm-3 text-md-end">
+              <div class="col-form-label"><b>Email:</b></div>
+            </div>
+            <div class="col-sm-9 text-md-start">
+              <div class="col-form-label"><%= userDetails.email %></div>
+            </div>
+          </div>
+          <div class="row my-3">
+            <div class="col-sm-3 text-md-end">
+              <label for="phone" class="col-form-label"><b>Phone:</b></label>
+            </div>
+            <div class="col-sm-9 text-md-start">
+              <input type="tel" class="form-control" id="phone" name="phone" value="<% if (userDetails.phone_num === null) { %>-<% }else{ %><%= userDetails.phone_num %><% } %>" disabled>
+            </div>
+          </div>
+          <div class="row my-3">
+            <div class="col-sm-3 text-md-end">
+              <label for="twitter" class="col-form-label"><b>Twitter:</b></label>
+            </div>
+            <div class="col-sm-9 text-md-start">
+              <div class="input-group">
+                <span class="input-group-text" id="inputGroupPrepend">@</span>
+                <input type="text" class="form-control" id="twitter" name="twitter" value="<% if (userDetails.twitter_handle === null) { %>-<% }else{ %><%= userDetails.twitter_handle %><% } %>" disabled>
+              </div>
+            </div>
+          </div>
+          <div class="row my-3">
+            <div class="col">
+              <input type="submit" id="save" class="btn btn-primary btn-lg my-3 " value="Save" disabled />
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+  const toggleInput = () => {
+    $('#phone').prop('disabled', false);
+    $('#twitter').prop('disabled', false);
+    $('#toggle').prop('disabled', true);
+    $('#save').prop('disabled', false);
+  }
+</script>
+<%- include('partials/footer') %>
