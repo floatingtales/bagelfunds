@@ -6,6 +6,15 @@
 <%- include('partials/navbar') %>
 <% } %>
 
-this is the 404 error
+<div class="container-fluid min-vh-100 bg-bagel d-flex flex-column justify-content-center align-items-center">
+  <h1 class="display-1 font-override">404!</h1>
+  <h3 class="display-3 font-override">Returning to home</h3>
+</div>
+
+<script>
+  setTimeout(() => {
+    window.location = '/';
+  }, 4000);
+</script>
 
 <%- include('partials/footer') %>

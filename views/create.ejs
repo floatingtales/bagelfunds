@@ -1,0 +1,52 @@
+<%- include('partials/header', {title:`Create cycle - Bagelfunds!`})%>
+
+<%- include('partials/navbarUser') %>
+
+<div class="container-fluid min-vh-100 bg-bagel">
+  <div class="row py-2 min-vh-100">
+    <div class="col-lg-12 d-flex align-items-center justify-content-center font-override">
+      <div class="container text-center bg-secondary rounded-3 text-light bg-opacity-75">
+        <h1 class="my-3">Create a new cycle!</h1>
+        <form action="/create" method="POST">
+          <div class="row my-3">
+            <label for="cyclename" class="col-form-label col-md-3">Cycle Name</label>
+            <div class="col-md-9">
+              <input type="text" class="form-control" id="cyclename" name="cyclename" placeholder="bagelsavings">
+            </div>
+          </div>
+          <div class="row my-3">
+            <label for="startdate" class="col-form-label col-md-3">Start Date</label>
+            <div class="col-md-9">
+              <input type="date" class="form-control" id="startdate" name="startdate" value="<%-moment()%>" />
+            </div>
+          </div>
+          <div class="row my-3">
+            <label for="frequency" class="col-form-label col-md-3">Frequency</label>
+            <div class="col-md-9">
+              <div class="form-check form-check-inline">
+                <input type="radio" id="freq-day" name="frequency" value="1 day" checked>
+                <label for="freq-day" class="form-check-label">Daily</label>
+                <input type="radio" id="freq-week" name="frequency" value="1 week">
+                <label for="freq-week" class="form-check-label">Weekly</label>
+                <input type="radio" id="freq-month" name="frequency" value="1 month">
+                <label for="freq-month" class="form-check-label">Monthly</label>
+              </div>
+            </div>
+          </div>
+          <div class="row my-3">
+            <label for="payment" class="col-form-label col-md-3">Session Payment</label>
+            <div class="col-md-9">
+              <div class="input-group">
+                <div class="input-group-text">$</div>
+                <input type="number" class="form-control" name="payment" placeholder="50">
+              </div>
+            </div>
+          </div>
+          <input type="submit" class="btn btn-primary btn-lg my-3" value="Submit" />
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%-include('partials/footer') %>

@@ -1,11 +1,12 @@
-/* eslint-disable import/extensions */
 import express from 'express';
 import methodOverride from 'method-override';
 import cookieParser from 'cookie-parser';
 import bcrypt from 'bcryptjs';
 import favicon from 'serve-favicon';
 import path from 'path';
+import moment from 'moment';
 import {
+  createCycle,
   createNewUser, findUserFromEmail, findUserFromID, findUserFromUsername, updateUser,
 } from './helper.js';
 
@@ -22,6 +23,12 @@ app.use(cookieParser());
 
 /** Middlewares */
 
+/**
+ * Checks whether user logged in or not, will redirect to home if not
+ * @param {object} req request
+ * @param {object} res response
+ * @param {object} next next
+ */
 const loginChecker = (req, res, next) => {
   console.log('middleware:', req.url);
   if (!req.cookies.loggedUser) {
@@ -47,7 +54,6 @@ const landingPageHandler = async (req, res) => {
 
   const userDetailsArr = await findUserFromID(req.cookies.loggedUser);
   const userDetails = userDetailsArr[0];
-  console.log(userDetails);
   res.render('userDashboard', { userDetails });
 };
 
@@ -62,7 +68,7 @@ const loginPageHandler = (req, res) => {
 };
 
 /**
- * logout post handler, deletes login cookie
+ * logout get handler, deletes login cookie
  * @param {object} req request
  * @param {object} res response
  */
@@ -72,6 +78,11 @@ const logoutHandler = (req, res) => {
   res.redirect('/');
 };
 
+/**
+ * profile get handler, shows profile
+ * @param {object} req request
+ * @param {object} res response
+ */
 const profileHandler = async (req, res) => {
   console.log('get:', req.url);
 
@@ -80,15 +91,27 @@ const profileHandler = async (req, res) => {
   res.render('profile', { userDetails });
 };
 
+const cycleHandler = async (req, res) => {
+  console.log('get:', req.url);
+  res.render('create', { moment });
+};
+
 /** put handlers */
+
+/**
+ * Update user put handler, updates phone number and twitter
+ * @param {object} req request
+ * @param {object} res response
+ * @returns {undefined}
+ */
 const editProfileHandler = async (req, res) => {
   console.log('put:', req.url);
   const { id } = req.params;
   const { phone, twitter } = req.body;
   if (id !== req.cookies.loggedUser) {
-    // this shouldn't happen but for precaution only
-    res.clearCookie('loggedUser');
-    res.redirect('/');
+    // this shouldn't happen but for precaution
+    // auto logouts the user
+    res.redirect('/logout');
     return;
   }
   await updateUser(id, phone, twitter);
@@ -157,6 +180,16 @@ const loginHandler = async (req, res) => {
   res.redirect('/');
 };
 
+const createCycleHandler = async (req, res) => {
+  console.log('post:', req.url);
+  const {
+    cyclename, startdate, frequency, payment,
+  } = req.body;
+  const { loggedUser } = req.cookies;
+  await createCycle(cyclename, loggedUser, startdate, frequency, payment);
+  res.redirect('/');
+};
+
 /** 404 handler */
 
 /**
@@ -183,6 +216,7 @@ app.get('/logout', logoutHandler);
 
 /* get routes after login */
 app.get('/profile', loginChecker, profileHandler);
+app.get('/create', loginChecker, cycleHandler);
 
 /* put routes after login */
 app.put('/profile/:id', loginChecker, editProfileHandler);
@@ -190,6 +224,9 @@ app.put('/profile/:id', loginChecker, editProfileHandler);
 /* post routes */
 app.post('/signup', signupHandler);
 app.post('/login', loginHandler);
+
+/* post routes after login */
+app.post('/create', loginChecker, createCycleHandler);
 
 /** 404 handler */
 app.get('*', errHandler);

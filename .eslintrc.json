@@ -11,6 +11,10 @@
   },
   "rules": {
     // Allow console for students to debug
-    "no-console": "off"
+    "no-console": "off",
+    // Disable max length because of db queries
+    "max-len": "off",
+    // import extensions give off errors
+    "import/extensions": "off"
   }
 }

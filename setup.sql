@@ -11,12 +11,13 @@ CREATE TABLE "users" (
 
 CREATE TABLE "cycle" (
   "id" SERIAL PRIMARY KEY,
+  "cycle_name" text,
   "host_id" integer,
-  "start_date" datetime,
-  "pull_freq" text,
-  "amt_per_pull" integer,
-  "cycle_type" text,
-  "payment_times" integer,
+  "start_date" date,
+  "session_freq" interval,
+  "session_payment" integer,
+  "has_ended" boolean,
+  "end_date" date,
   "created_at" timestamptz NOT NULL DEFAULT NOW()
 );
 
