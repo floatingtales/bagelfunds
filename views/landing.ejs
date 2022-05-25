@@ -6,7 +6,7 @@
   <div class="row min-vh-100 bg-info py-2">
     <div class="col-lg-7 vh-100 d-flex align-items-center bg-bagel bg-info">
       <div class="container d-flex justify-content-center">
-        <figure class="text-center">
+        <figure class="text-center font-override">
           <blockquote class="blockquote">
             <p>Can't save? Need cash? We'll solve both problems for you!</p>
           </blockquote>
@@ -41,6 +41,17 @@
           <input type="submit" class="btn btn-primary btn-lg my-3" value="Submit" />
         </form>
         <p>Already a member? <a class="link-light" href="/login">Log in here!</a> </p>
+        <% if (err) { %>
+        <div class="alert alert-danger">
+          <% if (err === 'user-taken') { %>
+          Username is already taken
+          <% } else if (err === 'email-taken') { %>
+          Email is already taken
+          <% } else if (err === 'not-logged-in') { %>
+          Please log in to continue
+          <% } %>
+        </div>
+        <% } %>
       </div>
     </div>
   </div>

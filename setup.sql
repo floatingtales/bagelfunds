@@ -16,12 +16,20 @@ CREATE TABLE "cycle" (
   "start_date" date,
   "session_freq" interval,
   "session_payment" integer,
+  "has_started" boolean,
   "has_ended" boolean,
   "end_date" date,
   "created_at" timestamptz NOT NULL DEFAULT NOW()
 );
 
-CREATE TABLE "users_cycle" (
+CREATE TABLE "invites" (
+  "id" SERIAL PRIMARY KEY,
+  "cycle_id" integer,
+  "invitee_id" integer,
+  "created_at" timestamptz NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE "user_cycle" (
   "id" SERIAL PRIMARY KEY,
   "user_id" integer,
   "cycle_id" integer,

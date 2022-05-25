@@ -1,14 +1,16 @@
 <%- include('partials/header', {title:`Profile - Bagelfunds!`}) %>
 <%- include('partials/navbarUser') %>
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center">
-  <div class="container bg-secondary text-light font-override rounded-4 py-5 my-2">
+<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center bg-bagel">
+  <div class="container bg-secondary rounded-3 bg-opacity-75 text-light font-override rounded-4 py-5 my-2">
     <div class="row text-center align-items-center">
       <div class="col-md-3 px-5 my-3">
         <h3>Bagelprofile</h3>
         <h5><%= userDetails.id %></h5>
       </div>
       <div class="col-md-9 my-3 text-md-end px-5 my-2">
-        <button id="toggle" class="btn btn-primary" onclick="toggleInput()">Edit Profile</button>
+        <button id="toggle" class="btn" onclick="toggleInput()">
+          <img src="gear.svg" alt="Edit User" width="35em">
+        </button>
       </div>
     </div>
 
@@ -64,7 +66,7 @@
           </div>
           <div class="row my-3">
             <div class="col">
-              <input type="submit" id="save" class="btn btn-primary btn-lg my-3 " value="Save" disabled />
+              <input type="submit" id="save" class="btn btn-primary btn-lg my-3" value="Save" disabled />
             </div>
         </form>
       </div>

@@ -1,5 +1,4 @@
 <%- include('partials/header', {title:`Create cycle - Bagelfunds!`})%>
-
 <%- include('partials/navbarUser') %>
 
 <div class="container-fluid min-vh-100 bg-bagel">
@@ -12,12 +11,6 @@
             <label for="cyclename" class="col-form-label col-md-3">Cycle Name</label>
             <div class="col-md-9">
               <input type="text" class="form-control" id="cyclename" name="cyclename" placeholder="bagelsavings">
-            </div>
-          </div>
-          <div class="row my-3">
-            <label for="startdate" class="col-form-label col-md-3">Start Date</label>
-            <div class="col-md-9">
-              <input type="date" class="form-control" id="startdate" name="startdate" value="<%-moment()%>" />
             </div>
           </div>
           <div class="row my-3">
