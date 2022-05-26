@@ -57,7 +57,7 @@ export const createNewUser = async (username, email, passwordHash) => {
 
 /**
  * Updates the values of the user telephone and twitter
- * @param {number} id user's id
+ * @param user{number} id user's id
  * @param {string} telephone the phone_num to be updated to the db
  * @param {string} twitter the twitter handle to be updated to the db
  * @returns {Promise} returns a promise obj
@@ -75,8 +75,8 @@ export const updateUser = async (id, telephone, twitter) => {
  * @param {number} cycleID ID of the cycle to have the users
  */
 export const createUserCycle = async (userID, cycleID) => {
-  const dbQuery = 'INSERT INTO user_cycle (user_id, cycle_id, has_received) VALUES ($1, $2, $3)';
-  await pool.query(dbQuery, [userID, cycleID, false]);
+  const dbQuery = 'INSERT INTO user_cycle (user_id, cycle_id) VALUES ($1, $2)';
+  await pool.query(dbQuery, [userID, cycleID]);
 };
 
 /**
@@ -90,6 +90,18 @@ export const createUserCycle = async (userID, cycleID) => {
 export const findUserCycleFromUserAndCycle = async (userID, cycleID) => {
   const dbQuery = 'SELECT * FROM user_cycle WHERE user_id = $1 AND cycle_id = $2';
   const userCycle = await pool.query(dbQuery, [userID, cycleID]);
+  return userCycle.rows;
+};
+
+/**
+ * Find user_cycle from the user_cycle table where
+ * cycle.id = cycleID
+ * @param {number} cycleID the cycle ID to search
+ * @returns {promise} promises an array of user_cycle data, or an empty array if not found
+ */
+export const findUserCycleFromCycle = async (cycleID) => {
+  const dbQuery = 'SELECT * FROM user_cycle WHERE cycle_id = $1';
+  const userCycle = await pool.query(dbQuery, [cycleID]);
   return userCycle.rows;
 };
 
@@ -175,6 +187,39 @@ export const deleteInvite = async (inviteID) => {
   await pool.query(dbQuery, [inviteID]);
 };
 
+/* SESSIONS TABLE QUERIES */
+
+/**
+ * find all sessions from a cycle ID
+ * @param {number} cycleID the ID of the cycle to find sessions from
+ * @returns {promise} An array with all the sessions from a cycle
+ */
+export const findSessionsFromCycle = async (cycleID) => {
+  const dbQuery = 'SELECT * FROM sessions WHERE cycle_id = $1 ORDER BY created_at';
+  const sessionsArr = await pool.query(dbQuery, [cycleID]);
+  return sessionsArr.rows;
+};
+
+export const updateSessionWinner = async (sessionWinner, sessionID) => {
+  const dbQuery = 'UPDATE sessions SET session_u_c_winner = $1 WHERE id = $2';
+  await pool.query(dbQuery, [sessionWinner, sessionID]);
+};
+
+export const updateAllPaymentStatus = async (sessionID) => {
+  const dbQuery = 'UPDATE sessions SET all_payments_received = true WHERE id = $1';
+  await pool.query(dbQuery, [sessionID]);
+};
+
+/* PAYMENT TABLE QUERIES */
+
+/**
+ * updates payment status to true in payment ID
+ * @param {number} paymentID
+ */
+export const updatePaymentStatus = async (paymentID) => {
+  const dbQuery = 'UPDATE payments SET has_paid = true WHERE id = $1';
+  await pool.query(dbQuery, [paymentID]);
+};
 /* MULTIPLE TABLE QUERIES */
 
 /**
@@ -182,13 +227,12 @@ export const deleteInvite = async (inviteID) => {
  * db queried cycles, user_cycle
  * @param {string} cycleName the name of the cycle to be added
  * @param {number} hostID the id of the host of the cycle
- * @param {Date} startDate the start date of a cycle
  * @param {string} sessionFrequency the frequency in which payments are made (in psql interval format)
  * @param {number} sessionPayment the amount pledged per session
  */
-export const createCycle = async (cycleName, hostID, startDate, sessionFrequency, sessionPayment) => {
-  const dbQuery = 'INSERT INTO cycle (cycle_name, host_id, start_date, session_freq, session_payment, has_started, has_ended) VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id';
-  const returnedValue = await pool.query(dbQuery, [cycleName, hostID, startDate, sessionFrequency, sessionPayment, false, false]);
+export const createCycle = async (cycleName, hostID, sessionFrequency, sessionPayment) => {
+  const dbQuery = 'INSERT INTO cycle (cycle_name, host_id, session_freq, session_payment, has_started, has_ended) VALUES($1, $2, $3, $4, $5, $6) RETURNING id';
+  const returnedValue = await pool.query(dbQuery, [cycleName, hostID, sessionFrequency, sessionPayment, false, false]);
   const { id } = returnedValue.rows[0];
   await createUserCycle(hostID, id);
 };
@@ -250,4 +294,64 @@ export const findJoinedCompletedCyclesNotHost = async (userID) => {
   const dbQuery = 'SELECT cycle.id AS cycle_id, cycle.session_freq AS cycle_session_freq, cycle.session_payment AS cycle_session_payment, cycle.cycle_name AS cycle_name, users.username AS host_name FROM user_cycle INNER JOIN cycle ON user_cycle.cycle_id = cycle.id INNER JOIN users ON users.id = cycle.host_id WHERE user_cycle.user_id = $1 AND cycle.host_id != $1 AND cycle.has_ended = true';
   const cycles = await pool.query(dbQuery, [userID]);
   return cycles.rows;
+};
+
+/**
+ * starts a cycle, creates all the appropriate db
+ * db queried cycle, user_cycle, sessions, payment
+ * @param {number} cycleID the id of the cycle to start
+ */
+export const startCycleFromID = async (cycleID) => {
+  // updates cycle and start date from the cycle table
+  const dbQueryInitial = 'UPDATE cycle SET has_started = true, start_date = CURRENT_DATE WHERE id = $1';
+  await pool.query(dbQueryInitial, [cycleID]);
+
+  // creates entries in session table equivalent to the length of userCycleData
+  // auto populate the duedate with currentDate + freq for the first one, or the previous duedate + freq
+  let sessionId;
+  const userCycleArr = await findUserCycleFromCycle(cycleID);
+  for (let i = 0; i < userCycleArr.length; i += 1) {
+    if (!sessionId) {
+      const dbSessionQuery = 'INSERT INTO sessions (cycle_ID, due_date, all_payments_received) VALUES ($1, (CURRENT_DATE + (SELECT session_freq FROM cycle WHERE id = $1)), $2) RETURNING id';
+      const idArr = await pool.query(dbSessionQuery, [cycleID, false]);
+      sessionId = idArr.rows[0].id;
+    } else {
+      const dbSessionQuery = 'INSERT INTO sessions (cycle_id, due_date,all_payments_received) VALUES ($1, ((SELECT due_date FROM sessions WHERE ID = $2) + (SELECT session_freq FROM cycle WHERE id = $1)), $3) RETURNING id';
+      const idArr = await pool.query(dbSessionQuery, [cycleID, sessionId, false]);
+      sessionId = idArr.rows[0].id;
+    }
+  }
+
+  // creates all payment sessions
+  const dbQueryGetSession = 'SELECT * FROM sessions WHERE cycle_id = $1';
+  const sessionsArr = await pool.query(dbQueryGetSession, [cycleID]);
+  sessionsArr.rows.forEach(async (session) => {
+    const { id: sessionID } = session;
+    userCycleArr.forEach(async (userCycle) => {
+      const { id: userCycleID } = userCycle;
+      const dbQuery = 'INSERT INTO payments (u_c_id, session_id, has_paid) VALUES ($1,$2,$3)';
+      await pool.query(dbQuery, [userCycleID, sessionID, false]);
+    });
+  });
+};
+
+/**
+ * finds the username of all entries in user_cycle, with joins
+ * @param {number} cycleID the id of the cycle to find users
+ */
+export const findUsernameFromCycle = async (cycleID) => {
+  const dbQuery = 'SELECT users.id, users.username, users.profile_url FROM user_cycle INNER JOIN users ON user_cycle.user_id = users.id WHERE user_cycle.cycle_id = $1';
+  const userProfile = await pool.query(dbQuery, [cycleID]);
+  return userProfile.rows;
+};
+
+/**
+ * find usernames from Session ID, for formatting and forms
+ * @param {number} sessionID session ID to search
+ * @returns {promise} an array of user profile and whether or not they have paid
+ */
+export const findProfileAndPaymentsFromSessionID = async (sessionID) => {
+  const dbQuery = 'SELECT payments.id, payments.has_paid, users.username, users.profile_url FROM users INNER JOIN user_cycle ON users.id = user_cycle.user_id INNER JOIN payments ON payments.u_c_id = user_cycle.id WHERE session_id = $1 ORDER BY payments.id';
+  const paymentsArr = await pool.query(dbQuery, [sessionID]);
+  return paymentsArr.rows;
 };

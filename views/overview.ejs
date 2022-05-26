@@ -1,4 +1,178 @@
-<%- include('partials/header', {title:`Overview - Bagelfunds!`})%>
+<%- include('partials/header', {title:`Overview ${cycle.id} - Bagelfunds!`})%>
 <%- include('partials/navbarUser') %>
 
+<div class="bg-bagel container-fluid min-vh-100">
+  <% if (err) { %>
+  <div class="alert alert-danger my-3">
+    <% if (err==='not-authorized' ) { %> user is not authorized to do this
+    action <% } else if (err==='not-enough-user' ) { %> Not enough user to start
+    a cycle <% } %>
+  </div>
+  <% } else if (success) { %>
+  <div class="alert alert-success my-3">
+    <% if (success==='verified-payment' ) { %> Verified user payment! <% } else
+    if (success==='deleted-cycle' ) { %> Cycle deleted successfully! <% } %>
+  </div>
+  <%}%>
+  <div class="container my-5 text-center">
+    <div class="row row-cols-1 g-4 my-3">
+      <div class="col">
+        <div
+          class="card font-override <% if (cycle.has_started) { %> text-bg-secondary <% } else if (!cycle.has_started) { %> text-bg-primary<% } %> bg-opacity-75"
+        >
+          <div class="card-header h1"><%= cycle.cycle_name %></div>
+          <div class="card-body text-center">
+            <div class="row">
+              <div class="col-sm-3 text-sm-end my-1">
+                <b>Hosted By:</b>
+              </div>
+              <div class="col-sm-9 text-sm-start my-1">
+                <%= host.username %>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-3 text-sm-end my-1">
+                <b>Session Frequecy:</b>
+              </div>
+              <div class="col-sm-9 text-sm-start my-1">
+                <% if ('days' in cycle.session_freq && cycle.session_freq
+                ['days']===1) { %> daily <% } else if ('days' in
+                cycle.session_freq && cycle.session_freq['days']===7) {%> weekly
+                <% } else if ('months' in cycle.session_freq) {%> monthly <% }
+                %>
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-sm-3 text-sm-end my-1">
+                <b>Session Payment:</b>
+              </div>
+              <div class="col-sm-9 text-sm-start my-1">
+                $ <%= cycle.session_payment %>
+              </div>
+            </div>
+            <% if (cycle.has_started) { const startDate=new
+            Date(cycle.start_date)%>
+            <div class="row">
+              <div class="col-sm-3 text-sm-end my-1">
+                <b>Start Date:</b>
+              </div>
+              <div class="col-sm-9 text-sm-start my-1">
+                <%= startDate.toISOString().substring(0,10) %>
+              </div>
+            </div>
+            <% } %> <% if (cycle.has_ended) { const endDate=new
+            Date(cycle.end_date)%>
+            <div class="row">
+              <div class="col-sm-3 text-sm-end my-1">
+                <b>End Date:</b>
+              </div>
+              <div class="col-sm-9 text-sm-start my-1">
+                <%= endDate.toISOString().substring(0,10) %>
+              </div>
+            </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div
+          class="card font-override <% if (cycle.has_started) { %> text-bg-secondary <% } else if (!cycle.has_started) { %> text-bg-primary <% } %> bg-opacity-75"
+        >
+          <h3 class="my-4">Joined Users</h3>
+          <div class="row row-cols-1 row-cols-md-3 g-4">
+            <% joinedUserProfiles.forEach(user=> { %>
+            <div class="col">
+              <div class="row my-3">
+                <div class="width-50">
+                  <img
+                    src="/<%=user.profile_url%>"
+                    alt="<%= user.username %>"
+                    class="rounded-circle"
+                  />
+                </div>
+              </div>
+              <div class="row my-3">
+                <h4><%= user.username %></h4>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+        </div>
+      </div>
+      <% sessionArr.forEach(session => { const dueDate = new
+      Date(session.due_date)%>
+      <div class="col">
+        <div
+          class="card font-override <% if (cycle.has_started) { %> text-bg-secondary <% } else if (!cycle.has_started) { %> text-bg-primary <% } %> bg-opacity-75 my-4"
+        >
+          <h3 class="my-4">Session: <%= session.id %></h3>
+          <h5 class="my-1">
+            Due Date: <%= dueDate.toISOString().substring(0,10) %>
+          </h5>
+          <div class="row row-cols-1 row-cols-md-3 g-4 my-3">
+            <% paymentsObj[`${session.id}`].forEach(payment=> { %>
+            <div class="col">
+              <div class="row my-3">
+                <div class="width-50">
+                  <img
+                    src="/<%=payment.profile_url%>"
+                    alt="<%= payment.username %>"
+                    class="rounded-circle"
+                  />
+                </div>
+
+                <div class="col">
+                  <div class="row">
+                    <h4><%= payment.username %></h4>
+                  </div>
+                  <% if(!session.session_u_c_winner &&
+                  !session.all_payments_received) { %>
+                  <div class="row">
+                    <% if (payment.has_paid) { %>
+                    <h5 class="text-success">User has completed payment</h5>
+                    <% } else {%>
+                    <h5 class="text-danger">User has not paid</h5>
+                    <% } %>
+                  </div>
+                  <% if (isHost && !payment.has_paid) { %>
+                  <div class="row">
+                    <form
+                      action="/pay/<%=cycle.id%>/<%=session.id%>/<%=payment.id%>?_method=PUT"
+                      method="POST"
+                    >
+                      <input
+                        type="submit"
+                        id="start"
+                        class="btn btn-secondary"
+                        value="Verify Payment!"
+                      />
+                    </form>
+                  </div>
+                  <% } %> <% } %>
+                </div>
+              </div>
+            </div>
+            <% }) %>
+          </div>
+          <% if(!session.session_u_c_winner && session.all_payments_received) {
+          %>
+          <form
+            action="/randomize/<%=cycle.id%>/<%=session.id%>?_method=PUT"
+            method="post"
+            class="my-3"
+          >
+            <input
+              type="submit"
+              id="submit"
+              value="Randomize Winner!"
+              class="btn btn-secondary"
+            />
+          </form>
+          <% } %>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+  </div>
+</div>
 <%-include('partials/footer') %>

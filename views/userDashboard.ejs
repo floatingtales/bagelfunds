@@ -1,34 +1,29 @@
-<%- include('partials/header', {title:`${userDetails.username} - Bagelfunds!`}) %>
-<%- include('partials/navbarUser') %>
+<%- include('partials/header', {title:`${userDetails.username} - Bagelfunds!`})
+%> <%- include('partials/navbarUser') %>
 
 <div class="bg-bagel container-fluid min-vh-100">
   <% if (err) { %>
   <div class="alert alert-danger my-3">
-    <% if (err === 'no-user') { %>
-    There are no records of that user.
-    <% } else if (err === 'self-add') { %>
-    You can't add yourself to the cycle!
-    <% } else if (err === 'already-in-cycle') { %>
-    User is already in cycle.
-    <% } else if (err === 'already-invited') { %>
-    User is already invited.
-    <% } else if (err === 'not-in-cycle') { %>
-    User is not in cycle.
-    <% } %>
+    <% if (err === 'no-user') { %> There are no records of that user. <% } else
+    if (err === 'self-add') { %> You can't add yourself to the cycle! <% } else
+    if (err === 'already-in-cycle') { %> User is already in cycle. <% } else if
+    (err === 'already-invited') { %> User is already invited. <% } else if (err
+    === 'not-in-cycle') { %> User is not in cycle. <% } else if (err ===
+    'not-enough-user') { %> Not enough user to start a cycle <% } %>
   </div>
   <% } else if (success) { %>
   <div class="alert alert-success my-3">
-    <% if (success === 'successful-invite') { %>
-    Successfully invited user!
-    <% } else if (success === 'deleted-cycle') { %>
-    Cycle deleted successfully!
-    <% } %>
+    <% if (success === 'successful-invite') { %> Successfully invited user! <% }
+    else if (success === 'deleted-cycle') { %> Cycle deleted successfully! <% }
+    %>
   </div>
-  <% } %>
-  <% if (upcomingHostedCycles.length !== 0 || ongoingHostedCycles.length !== 0 || upcomingJoinedCycles.length!== 0 || ongoingJoinedCycles.length !== 0) { %>
+  <% } %> <% if (upcomingHostedCycles.length !== 0 || ongoingHostedCycles.length
+  !== 0 || upcomingJoinedCycles.length!== 0 || ongoingJoinedCycles.length !== 0)
+  { %>
 
   <div class="container my-5 text-center">
-    <% if (upcomingHostedCycles.length !== 0 || ongoingHostedCycles.length !== 0) { %>
+    <% if (upcomingHostedCycles.length !== 0 || ongoingHostedCycles.length !==
+    0) { %>
 
     <h1 class="font-override my-5">Cycles You Host</h1>
     <% if (upcomingHostedCycles.length!=0) { %>
@@ -37,9 +32,9 @@
       <% upcomingHostedCycles.forEach(cycle => { %>
       <div class="col">
         <div class="card font-override text-bg-primary bg-opacity-75">
-          <div class="card-header"> <%= cycle.cycle_name %> </div>
+          <div class="card-header"><%= cycle.cycle_name %></div>
           <div class="card-body text-center">
-            <form action="invite/<%=cycle.id%>" method="POST">
+            <form action="/invite/<%=cycle.id%>" method="POST">
               <div class="row">
                 <div class="col-md-5 text-md-end my-1">
                   <b>Hosted By:</b>
@@ -53,13 +48,11 @@
                   <b>Session Frequecy:</b>
                 </div>
                 <div class="col-md-7 text-md-start my-1">
-                  <% if ('days' in cycle.session_freq && cycle.session_freq['days'] === 1) { %>
-                  daily
-                  <% } else if ('days' in cycle.session_freq && cycle.session_freq['days'] === 7) {%>
-                  weekly
-                  <% } else if ('months' in cycle.session_freq) {%>
-                  monthly
-                  <% } %>
+                  <% if ('days' in cycle.session_freq &&
+                  cycle.session_freq['days'] === 1) { %> daily <% } else if
+                  ('days' in cycle.session_freq && cycle.session_freq['days']
+                  === 7) {%> weekly <% } else if ('months' in
+                  cycle.session_freq) {%> monthly <% } %>
                 </div>
               </div>
               <div class="row">
@@ -67,7 +60,7 @@
                   <b>Session Payment:</b>
                 </div>
                 <div class="col-md-7 text-md-start my-1">
-                  <%= cycle.session_payment %>
+                  $ <%= cycle.session_payment %>
                 </div>
               </div>
               <div class="row">
@@ -75,25 +68,51 @@
                   <b><label for="invite">Invite user:</label></b>
                 </div>
                 <div class="col-lg-4 text-lg-start">
-                  <input type="text" class="form-control" id="invite" name="invite" placeholder="bageluser001">
+                  <input
+                    type="text"
+                    class="form-control"
+                    id="invite"
+                    name="invite"
+                    placeholder="bageluser001"
+                  />
                 </div>
-                <div class="col-lg-3">
-                  <input type="submit" id="invite" class="btn btn-primary" value="Invite User">
+                <div class="col-lg-3 my-2">
+                  <input
+                    type="submit"
+                    id="invite"
+                    class="btn btn-primary"
+                    value="Invite User"
+                  />
                 </div>
               </div>
             </form>
             <div class="row">
-              <div class="col-md-4 my-2">
-                <form action="cancel/<%=cycle.id%>?_method=DELETE" method="POST">
-                  <input type="submit" id="start" class="btn btn-danger" value="Cancel Cycle!">
+              <div class="col-lg-4 my-2">
+                <form
+                  action="/cancel/<%=cycle.id%>?_method=DELETE"
+                  method="POST"
+                >
+                  <input
+                    type="submit"
+                    id="start"
+                    class="btn btn-danger"
+                    value="Cancel Cycle!"
+                  />
                 </form>
               </div>
-              <div class="col-md-4 my-2">
-                <a href="/overview/<%= cycle.id %>" class="btn btn-primary">Overview</a>
+              <div class="col-lg-4 my-2">
+                <a href="/overview/<%= cycle.id %>" class="btn btn-primary"
+                  >Overview</a
+                >
               </div>
-              <div class="col-md-4 my-2">
-                <form action="start/<%=cycle.id%>?_method=PUT" method="POST">
-                  <input type="submit" id="start" class="btn btn-primary" value="Begin Cycle!">
+              <div class="col-lg-4 my-2">
+                <form action="/start/<%=cycle.id%>?_method=PUT" method="POST">
+                  <input
+                    type="submit"
+                    id="start"
+                    class="btn btn-primary"
+                    value="Begin Cycle!"
+                  />
                 </form>
               </div>
             </div>
@@ -102,15 +121,13 @@
       </div>
       <% }) %>
     </div>
-    <% } %>
-
-    <% if (ongoingHostedCycles.length!=0) { %>
+    <% } %> <% if (ongoingHostedCycles.length!=0) { %>
     <h3 class="font-override my-3">Ongoing Cycles</h3>
     <div class="row row-cols-1 row-cols-md-2 g-4 my-3">
       <% ongoingHostedCycles.forEach(cycle => { %>
       <div class="col">
         <div class="card font-override text-bg-secondary bg-opacity-75">
-          <div class="card-header"> <%= cycle.cycle_name %> </div>
+          <div class="card-header"><%= cycle.cycle_name %></div>
           <div class="card-body text-center">
             <div class="row">
               <div class="col-md-5 text-md-end my-1">
@@ -125,13 +142,9 @@
                 <b>Session Frequecy:</b>
               </div>
               <div class="col-md-7 text-md-start my-1">
-                <% if ('days' in cycle.session_freq) { %>
-                daily
-                <% } else if ('weeks' in cycle.session_freq) {%>
-                weekly
-                <% } else if ('months' in cycle.session_freq) {%>
-                monthly
-                <% } %>
+                <% if ('days' in cycle.session_freq) { %> daily <% } else if
+                ('weeks' in cycle.session_freq) {%> weekly <% } else if
+                ('months' in cycle.session_freq) {%> monthly <% } %>
               </div>
             </div>
             <div class="row">
@@ -139,12 +152,14 @@
                 <b>Session Payment:</b>
               </div>
               <div class="col-md-7 text-md-start my-1">
-                <%= cycle.session_payment %>
+                $ <%= cycle.session_payment %>
               </div>
             </div>
             <div class="row">
               <div class="col-md-12 my-2">
-                <a href="cycle/overview/<%= cycle.id %> " class="btn btn-secondary">Overview</a>
+                <a href="overview/<%= cycle.id %> " class="btn btn-secondary"
+                  >Overview</a
+                >
               </div>
             </div>
           </div>
@@ -152,11 +167,8 @@
       </div>
       <% }) %>
     </div>
-    <% } %>
-
-    <% } %>
-
-    <% if (upcomingJoinedCycles.length !== 0 || ongoingJoinedCycles.length !== 0) { %>
+    <% } %> <% } %> <% if (upcomingJoinedCycles.length !== 0 ||
+    ongoingJoinedCycles.length !== 0) { %>
     <h1 class="font-override my-5">Cycles You Joined</h1>
     <% if (upcomingJoinedCycles.length!=0) { %>
     <h3 class="font-override my-3">Upcoming Cycles</h3>
@@ -164,7 +176,7 @@
       <% upcomingJoinedCycles.forEach(cycle => { %>
       <div class="col">
         <div class="card font-override text-bg-primary bg-opacity-75">
-          <div class="card-header"> <%= cycle.cycle_name %> </div>
+          <div class="card-header"><%= cycle.cycle_name %></div>
           <div class="card-body text-center">
             <div class="row">
               <div class="col-md-5 text-md-end my-1">
@@ -179,13 +191,11 @@
                 <b>Session Frequecy:</b>
               </div>
               <div class="col-md-7 text-md-start my-1">
-                <% if ('days' in cycle.cycle_session_freq && cycle.cycle_session_freq['days'] === 1) { %>
-                daily
-                <% } else if ('days' in cycle.cycle_session_freq && cycle.cycle_session_freq['days'] === 7) {%>
-                weekly
-                <% } else if ('months' in cycle.cycle_session_freq) {%>
-                monthly
-                <% } %>
+                <% if ('days' in cycle.cycle_session_freq &&
+                cycle.cycle_session_freq['days'] === 1) { %> daily <% } else if
+                ('days' in cycle.cycle_session_freq &&
+                cycle.cycle_session_freq['days'] === 7) {%> weekly <% } else if
+                ('months' in cycle.cycle_session_freq) {%> monthly <% } %>
               </div>
             </div>
             <div class="row">
@@ -193,12 +203,16 @@
                 <b>Session Payment:</b>
               </div>
               <div class="col-md-7 text-md-start my-1">
-                <%= cycle.cycle_session_payment %>
+                $ <%= cycle.cycle_session_payment %>
               </div>
             </div>
             <div class="row">
               <div class="col-md-12 my-2">
-                <a href="/overview/<%= cycle.cycle_id %>" class="btn btn-primary">Overview</a>
+                <a
+                  href="/overview/<%= cycle.cycle_id %>"
+                  class="btn btn-primary"
+                  >Overview</a
+                >
               </div>
             </div>
           </div>
@@ -206,15 +220,13 @@
       </div>
       <% }) %>
     </div>
-    <% } %>
-
-    <% if (ongoingJoinedCycles.length!=0) { %>
+    <% } %> <% if (ongoingJoinedCycles.length!=0) { %>
     <h3 class="font-override my-3">Ongoing Cycles</h3>
     <div class="row row-cols-1 row-cols-md-2 g-4 my-3">
       <% ongoingJoinedCycles.forEach(cycle => { %>
       <div class="col">
         <div class="card font-override text-bg-secondary bg-opacity-75">
-          <div class="card-header"> <%= cycle.cycle_name %> </div>
+          <div class="card-header"><%= cycle.cycle_name %></div>
           <div class="card-body text-center">
             <div class="row">
               <div class="col-md-5 text-md-end my-1">
@@ -229,13 +241,11 @@
                 <b>Session Frequecy:</b>
               </div>
               <div class="col-md-7 text-md-start my-1">
-                <% if ('days' in cycle.cycle_session_freq && cycle.cycle_session_freq['days'] === 1) { %>
-                daily
-                <% } else if ('days' in cycle.cycle_session_freq && cycle.cycle_session_freq['days'] === 7) {%>
-                weekly
-                <% } else if ('months' in cycle.cycle_session_freq) {%>
-                monthly
-                <% } %>
+                <% if ('days' in cycle.cycle_session_freq &&
+                cycle.cycle_session_freq['days'] === 1) { %> daily <% } else if
+                ('days' in cycle.cycle_session_freq &&
+                cycle.cycle_session_freq['days'] === 7) {%> weekly <% } else if
+                ('months' in cycle.cycle_session_freq) {%> monthly <% } %>
               </div>
             </div>
             <div class="row">
@@ -243,12 +253,16 @@
                 <b>Session Payment:</b>
               </div>
               <div class="col-md-7 text-md-start my-1">
-                <%= cycle.cycle_session_payment %>
+                $ <%= cycle.cycle_session_payment %>
               </div>
             </div>
             <div class="row">
               <div class="col-md-12 my-2">
-                <a href="/overview/<%= cycle.cycle_id %>" class="btn btn-secondary">Overview</a>
+                <a
+                  href="/overview/<%= cycle.cycle_id %>"
+                  class="btn btn-secondary"
+                  >Overview</a
+                >
               </div>
             </div>
           </div>
@@ -256,11 +270,12 @@
       </div>
       <% }) %>
     </div>
-    <% } %>
-    <% } %>
+    <% } %> <% } %>
   </div>
   <% } else {%>
-  <div class="container-fluid min-vh-100 d-flex flex-column align-items-center justify-content-center">
+  <div
+    class="container-fluid min-vh-100 d-flex flex-column align-items-center justify-content-center"
+  >
     <h1 class="font-override">There aren't any active cycles</h1>
     <h3 class="font-override">Start one instead?</h3>
   </div>

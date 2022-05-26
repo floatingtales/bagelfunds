@@ -15,6 +15,8 @@
     // Disable max length because of db queries
     "max-len": "off",
     // import extensions give off errors
-    "import/extensions": "off"
+    "import/extensions": "off",
+    // needed this for one of the backend helper functions
+    "no-await-in-loop": "off"
   }
 }

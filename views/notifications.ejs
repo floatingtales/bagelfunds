@@ -1,18 +1,16 @@
-<%- include('partials/header', {title:`Notifications - Bagelfunds!`})%>
-<%- include('partials/navbarUser') %>
+<%- include('partials/header', {title:`Notifications - Bagelfunds!`})%> <%-
+include('partials/navbarUser') %>
 <div class="bg-bagel container-fluid min-vh-100">
   <% if (success) { %>
   <div class="alert alert-success my-3">
-    <% if (success === 'join') { %>
-    Joined cycle successfully
-    <% } else if (success === 'not-join') { %>
-    Not joined this cycle, maybe next time?
-    <% } %>
+    <% if (success === 'join') { %> Joined cycle successfully <% } else if
+    (success === 'not-join') { %> Not joined this cycle, maybe next time? <% }
+    %>
   </div>
-  <% } %>
-
-  <% if (inviteInfo.length === 0) { %>
-  <div class="container min-vh-100 d-flex flex-column align-items-center justify-content-center">
+  <% } %> <% if (inviteInfo.length === 0) { %>
+  <div
+    class="container min-vh-100 d-flex flex-column align-items-center justify-content-center"
+  >
     <h1 class="font-override">No new notifications!</h1>
     <h3 class="font-override">Start a cycle?</h3>
   </div>
@@ -41,13 +39,10 @@
                   <b>Session Frequency:</b>
                 </div>
                 <div class="col-md-7 text-md-start my-1">
-                  <% if ('days' in invite.cyclefreq && invite.cyclefreq['days'] === 1) { %>
-                  daily
-                  <% } else if ('days' in invite.cyclefreq && invite.cyclefreq['days'] === 7) {%>
-                  weekly
-                  <% } else if ('months' in invite.cyclefreq) {%>
-                  monthly
-                  <% } %>
+                  <% if ('days' in invite.cyclefreq && invite.cyclefreq['days']
+                  === 1) { %> daily <% } else if ('days' in invite.cyclefreq &&
+                  invite.cyclefreq['days'] === 7) {%> weekly <% } else if
+                  ('months' in invite.cyclefreq) {%> monthly <% } %>
                 </div>
               </div>
               <div class="row">
@@ -60,13 +55,26 @@
               </div>
               <div class="row">
                 <div class="col-md-6 my-2">
-                  <form action="handle/<%=invite.inviteid%>?_method=DELETE" method="POST">
-                    <input type="submit" id="start" class="btn btn-danger" value="Not Interested...">
+                  <form
+                    action="/handle/<%=invite.inviteid%>?_method=DELETE"
+                    method="POST"
+                  >
+                    <input
+                      type="submit"
+                      id="start"
+                      class="btn btn-danger"
+                      value="Not Interested..."
+                    />
                   </form>
                 </div>
                 <div class="col-md-6 my-2">
-                  <form action="handle/<%=invite.inviteid%>" method="POST">
-                    <input type="submit" id="start" class="btn btn-primary" value="Join Cycle!">
+                  <form action="/handle/<%=invite.inviteid%>" method="POST">
+                    <input
+                      type="submit"
+                      id="start"
+                      class="btn btn-primary"
+                      value="Join Cycle!"
+                    />
                   </form>
                 </div>
               </div>

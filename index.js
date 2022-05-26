@@ -19,11 +19,19 @@ import {
   findJoinedOngoingCyclesNotHost,
   findJoinedUpcomingCyclesNotHost,
   findOngoingHostedCycles,
+  findProfileAndPaymentsFromSessionID,
+  findSessionsFromCycle,
   findUpcomingHostedCycles,
+  findUserCycleFromCycle,
   findUserCycleFromUserAndCycle,
   findUserFromEmail,
   findUserFromID,
   findUserFromUsername,
+  findUsernameFromCycle,
+  startCycleFromID,
+  updateAllPaymentStatus,
+  updatePaymentStatus,
+  updateSessionWinner,
   updateUser,
 } from './helper.js';
 
@@ -123,7 +131,8 @@ const landingPageHandler = async (req, res) => {
  */
 const loginPageHandler = (req, res) => {
   console.log('get:', req.url);
-  res.render('login');
+  const err = (!req.query.e) ? '' : req.query.e;
+  res.render('login', { err });
 };
 
 /**
@@ -174,17 +183,48 @@ const notificationHandler = async (req, res) => {
   res.render('notifications', { inviteInfo, success });
 };
 
+/**
+ * get overview handler, shows details of cycle and who are in the cycle
+ * Hosts get special command buttons
+ * @param {object} req request
+ * @param {object} res response
+ */
 const overviewHandler = async (req, res) => {
   console.log('get:', req.url);
+
+  const err = (!req.query.e) ? '' : req.query.e;
+  const success = (!req.query.s) ? '' : req.query.s;
   const { cycleID } = req.params;
   const { loggedUser } = req.cookies;
-  const cycleArr = await findCycleFromID(cycleID);
-  console.log(cycleArr);
-  const cycle = cycleArr[0];
-  const isHost = loggedUser === cycle.host_id;
 
-  res.render('overview', { cycle, isHost });
-  res.send('get to overview');
+  const cycleArr = await findCycleFromID(cycleID);
+  const cycle = cycleArr[0];
+
+  const hostArr = await findUserFromID(cycle.host_id);
+  const host = hostArr[0];
+
+  const isHost = Number(loggedUser) === host.id;
+
+  const joinedUserProfiles = await findUsernameFromCycle(cycleID);
+
+  const sessionArr = await findSessionsFromCycle(cycleID);
+
+  const paymentsObj = {};
+  for (let i = 0; i < sessionArr.length; i += 1) {
+    const paymentsArr = await findProfileAndPaymentsFromSessionID(sessionArr[i].id);
+    paymentsObj[`${sessionArr[i].id}`] = paymentsArr;
+  }
+
+  res.render('overview', {
+    err,
+    success,
+    cycle,
+    host,
+    isHost,
+    joinedUserProfiles,
+    sessionArr,
+    paymentsObj,
+  });
 };
 
 /** put handlers */
@@ -207,6 +247,92 @@ const editProfileHandler = async (req, res) => {
   }
   await updateUser(id, phone, twitter);
   res.redirect('/profile');
+};
+
+/**
+ * Starts a cycle
+ * @param {object} req request
+ * @param {object} res response
+ * @returns {undefined}
+ */
+const startCycleHandler = async (req, res) => {
+  console.log('put:', req.url);
+  const { cycleID } = req.params;
+  const userCycle = await findUserCycleFromCycle(cycleID);
+
+  // if there's only one user, you can't start a cycle
+  if (userCycle.length < 2) {
+    res.redirect('/?e=not-enough-user');
+    return;
+  }
+
+  // starts the cycle - this is a huge O(n**2) complexity code
+  await startCycleFromID(cycleID);
+
+  res.redirect('/');
+};
+
+const verifyPayment = async (req, res) => {
+  console.log('put:', req.url);
+  const { cycleID, sessionID, paymentID } = req.params;
+  const { loggedUser } = req.cookies;
+
+  const cycleArr = await findCycleFromID(cycleID);
+  const cycle = cycleArr[0];
+
+  // if not the host triggered the button
+  if (cycle.host_id !== Number(loggedUser)) {
+    res.redirect(`/overview/${cycleID}?e=not-authorized`);
+  }
+  await updatePaymentStatus(paymentID);
+
+  const allPayments = await findProfileAndPaymentsFromSessionID(sessionID);
+  let hasUnpaid = false;
+
+  for (let i = 0; i < allPayments.length; i += 1) {
+    const payment = allPayments[i];
+    if (!payment.has_paid) { hasUnpaid = true; break; }
+  }
+
+  // if all people has paid, update session id's all payments received
+  if (!hasUnpaid) {
+    await updateAllPaymentStatus(sessionID);
+  }
+  res.redirect(`/overview/${cycleID}?s=verified-payment`);
+};
+
+const randomizeWinner = async (req, res) => {
+  console.log('put:', req.url);
+  const { cycleID, sessionID } = req.params;
+  const userCycleArr = await findUserCycleFromCycle(cycleID);
+  const sessionsArr = await findSessionsFromCycle(cycleID);
+  const userCycleIDArr = [];
+  const userIDArr = [];
+
+  // put copy of all user_cycle id in a cycle
+  userCycleArr.forEach((userCycle) => {
+    userCycleIDArr.push(userCycle.id);
+    userIDArr.push(userCycle.user_id);
+  });
+
+  // delete matching user_cycle id
+  sessionsArr.forEach((session) => {
+    const indexOfWinner = userCycleIDArr.indexOf(session.session_u_c_winner);
+    if (indexOfWinner !== -1) {
+      userCycleIDArr.splice(indexOfWinner, 1);
+      userIDArr.splice(indexOfWinner, 1);
+    }
+  });
+
+  // randomize an index
+  const randomIndex = Math.floor(Math.random() * userCycleIDArr.length);
+  const winningUserCycleID = userCycleIDArr[randomIndex];
+  await updateSessionWinner(winningUserCycleID, sessionID);
+
+  const winningUserArr = await findUserFromID(userIDArr[randomIndex]);
+  const winningUser = winningUserArr[0];
+  console.log(winningUser);
+  res.render('winner', { winningUser });
 };
 
 /** post handlers */
@@ -253,7 +379,7 @@ const loginHandler = async (req, res) => {
   const userArr = await findUserFromUsername(username);
   // no user found
   if (userArr.length === 0) {
-    res.send('no user found');
+    res.redirect('/login?e=no-user');
     return;
   }
 
@@ -261,7 +387,7 @@ const loginHandler = async (req, res) => {
   const pwdCorrect = bcrypt.compareSync(password, dbPwd);
 
   if (!pwdCorrect) {
-    res.send('wrong password');
+    res.redirect('/login?e=wrong-pwd');
     return;
   }
 
@@ -279,10 +405,10 @@ const loginHandler = async (req, res) => {
 const createCycleHandler = async (req, res) => {
   console.log('post:', req.url);
   const {
-    cyclename, startdate, frequency, payment,
+    cyclename, frequency, payment,
   } = req.body;
   const { loggedUser } = req.cookies;
-  await createCycle(cyclename, loggedUser, startdate, frequency, payment);
+  await createCycle(cyclename, loggedUser, frequency, payment);
   res.redirect('/');
 };
 
@@ -387,16 +513,6 @@ const errHandler = (req, res) => {
   res.render('not-found', { loggedIn: true });
 };
 
-/** TODO Callbacks */
-
-const startCycleHandler = async (req, res) => {
-  console.log('put:', req.url);
-  // if users_cycle has 1 or less users, redirect to home
-  // else, update entry in db, has_started to true, and start date is now
-  // create entries in u_c_payment, due date is start date + freq
-  res.redirect('/');
-};
-
 /** routes */
 
 /* get routes */
@@ -418,6 +534,9 @@ app.get('/overview/:cycleID', loginChecker, inCycleChecker, overviewHandler);
 
 /* put routes after login */
 app.put('/profile/:id', loginChecker, editProfileHandler);
+app.put('/start/:cycleID', loginChecker, startCycleHandler);
+app.put('/pay/:cycleID/:sessionID/:paymentID', loginChecker, verifyPayment);
+app.put('/randomize/:cycleID/:sessionID', loginChecker, randomizeWinner);
 
 /* post routes after login */
 app.post('/create', loginChecker, createCycleHandler);
@@ -430,9 +549,6 @@ app.delete('/handle/:inviteID', loginChecker, deleteInviteHandler);
 
 /** 404 handler */
 app.get('*', errHandler);
-
-/** TODO Handlers */
-app.put('/start/:cycle_id', loginChecker, startCycleHandler);
 
 /** start listening on port */
 const PORT = 5050;
