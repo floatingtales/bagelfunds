@@ -220,6 +220,7 @@ export const updatePaymentStatus = async (paymentID) => {
   const dbQuery = 'UPDATE payments SET has_paid = true WHERE id = $1';
   await pool.query(dbQuery, [paymentID]);
 };
+
 /* MULTIPLE TABLE QUERIES */
 
 /**
